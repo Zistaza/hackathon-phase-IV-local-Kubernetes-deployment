@@ -264,6 +264,7 @@ See `.specify/memory/constitution.md` for code quality, testing, performance, se
 - Neon Serverless PostgreSQL via SQLModel ORM (009-todo-chatbot-api)
 - JavaScript/TypeScript, Next.js 16+ + OpenAI ChatKit, React 18+, Tailwind CSS 4.0+, Framer Motion 11+ (010-frontend-chatkit)
 - N/A (stateless design - all conversation persistence handled by backend) (010-frontend-chatkit)
+- Python 3.11, JavaScript/TypeScript 5.0+ + Docker AI (Gordon), kubectl-ai, Kagent, Helm 3, Minikube (011-k8s-deployment)
 
 ## Recent Changes
 - 001-auth-identity: Added Python 3.11, JavaScript/TypeScript, Next.js 16+ + Better Auth (frontend), FastAPI (backend), SQLModel (ORM), Neon Serverless PostgreSQL (database)
