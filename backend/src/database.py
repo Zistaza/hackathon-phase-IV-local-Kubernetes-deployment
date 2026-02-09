@@ -1,4 +1,4 @@
-from sqlmodel import create_engine, Session
+from sqlmodel import create_engine, Session, SQLModel
 from .config.settings import settings
 from typing import Generator
 
@@ -8,6 +8,9 @@ DATABASE_URL = settings.DATABASE_URL
 # Create the database engine
 engine = create_engine(DATABASE_URL, echo=True)
 
+# Alias for backward compatibility
+Base = SQLModel
+
 
 def get_session() -> Generator[Session, None, None]:
     """
@@ -15,6 +18,10 @@ def get_session() -> Generator[Session, None, None]:
     """
     with Session(engine) as session:
         yield session
+
+
+# Alias for backward compatibility
+get_db = get_session
 
 
 def init_db():
