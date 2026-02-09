@@ -132,3 +132,24 @@ frontend/*.log
 # Windows Zone Identifier (NTFS ADS exposed in WSL)
 *:Zone.Identifier*
 
+# Kubernetes deployment files
+.kube/
+kubeconfig*
+*.key
+*.crt
+*.secret.yaml
+secrets/
+
+# Helm files
+.charts/
+charts/*.tgz
+
+# Minikube
+minikube/
+
+# Temporary files
+*.tmp
+*.aux
+*.log
+*.out
+*.err

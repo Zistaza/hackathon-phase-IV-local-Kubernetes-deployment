@@ -1,17 +1,19 @@
-# Quickstart Guide: Phase IV Kubernetes Deployment
+# Phase IV Kubernetes Deployment - Complete Guide
 
 ## Overview
 
-This guide provides step-by-step instructions for deploying the Todo AI Chatbot to a local Minikube cluster using AI-assisted DevOps practices.
+This guide provides comprehensive instructions for deploying the Todo AI Chatbot to a local Minikube cluster using AI-assisted DevOps practices. The deployment leverages Docker AI Agent (Gordon) for optimized containerization, kubectl-ai for intelligent Kubernetes operations, and Kagent for cluster health monitoring.
 
 ## Prerequisites
 
 ### System Requirements
+
 - **Operating System**: Linux, macOS, or Windows 10/11
 - **RAM**: Minimum 8GB (Recommended 16GB)
 - **CPU**: Minimum 4 cores (Recommended 6 cores)
 - **Disk Space**: Minimum 30GB free space
 - **Docker**: Docker Desktop installed and running
+- **Git**: For version control
 
 ### Software Installation
 
@@ -57,9 +59,22 @@ irm https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3.ps1 -Out
 ./get_helm.ps1
 ```
 
-## Step 1: Start Minikube Cluster
-
+#### 5. Install AI Tools
 ```bash
+# Install kubectl-ai
+curl -sL https://kubectl-ai.sh/install | sh
+
+# Install Kagent
+curl -L https://kagent.io/install | sh
+```
+
+## Step 1: Setup Environment
+
+### 1.1 Start Minikube Cluster
+```bash
+# Navigate to project directory
+cd /path/to/todo-chatbot
+
 # Start Minikube with optimal resources
 minikube start \
   --cpus=4 \
@@ -70,215 +85,123 @@ minikube start \
 # Enable necessary addons
 minikube addons enable ingress
 minikube addons enable metrics-server
+minikube addons enable dashboard
 
-# Verify cluster is running
+# Configure kubectl context
+kubectl config use-context minikube
+
+# Verify cluster status
 kubectl cluster-info
-kubectl get nodes
+kubectl get nodes -o wide
+kubectl get all --all-namespaces
 ```
 
-**Expected Output:**
-```
-Kubernetes control plane is running at https://127.0.0.1:8443
-CoreDNS is running at https://127.0.0.1:8443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy
-
-NAME       STATUS   ROLES           AGE   VERSION
-minikube   Ready    control-plane   2m    v1.28.0
-```
-
-## Step 2: Containerize Applications with Docker AI
-
-### 2.1 Navigate to Project Directory
+### 1.2 Configure AI Tools
 ```bash
-cd /path/to/todo-chatbot
+# Configure Docker AI
+./scripts/docker-ai-setup.sh
+
+# Configure kubectl-ai
+./scripts/kubectl-ai-setup.sh
+
+# Configure Kagent
+./scripts/kagent-setup.sh
 ```
 
-### 2.2 Use Docker AI for Containerization
+## Step 2: Containerize Applications
+
+### 2.1 Use Docker AI for Containerization
 ```bash
-# Containerize backend
-docker ai build backend --name todo-backend --tag latest
+# Containerize backend application
+docker ai "Containerize the Todo AI Chatbot backend application with Python 3.11, FastAPI, and SQLModel. Use multi-stage builds, non-root user, health checks, and optimize for size under 15MB."
 
-# Containerize frontend
-docker ai build frontend --name todo-frontend --tag latest
-
-# View generated Dockerfiles
-docker ai show dockerfiles
+# Containerize frontend application
+docker ai "Containerize the Todo AI Chatbot frontend application with Next.js 16+, React 18+, and Tailwind CSS 4.0+. Use multi-stage builds, non-root user, health checks, and optimize for size under 50MB."
 ```
 
-**Expected Output:**
-```
-Building backend...
-Successfully built todo-backend:latest
-Building frontend...
-Successfully built todo-frontend:latest
-```
-
-### 2.3 Verify Container Images
+### 2.2 Verify Container Images
 ```bash
+# Check container images
 docker images | grep todo
-```
 
-**Expected Output:**
-```
+# Expected output:
 todo-backend   latest   1234567890ab   2 minutes ago   12MB
 todo-frontend  latest   0987654321ab   2 minutes ago   45MB
 ```
 
-## Step 3: Create and Deploy Helm Chart
+## Step 3: Deploy with Helm
 
-### 3.1 Generate Helm Chart
+### 3.1 Deploy Helm Chart
 ```bash
-# Create Helm chart
-docker ai helm create todo-app --version 1.0.0
-
-# View generated chart structure
-docker ai show helm-chart
-```
-
-### 3.2 Customize Helm Chart
-```bash
-# Edit values.yaml with appropriate configurations
-nano charts/todo-app/values.yaml
-```
-
-**Key Configurations to Set:**
-```yaml
-images:
-  backend:
-    repository: todo-backend
-    tag: latest
-  frontend:
-    repository: todo-frontend
-    tag: latest
-
-replicas:
-  backend: 2
-  frontend: 1
-
-resources:
-  backend:
-    requests:
-      cpu: "100m"
-      memory: "256Mi"
-    limits:
-      cpu: "500m"
-      memory: "512Mi"
-  frontend:
-    requests:
-      cpu: "50m"
-      memory: "128Mi"
-    limits:
-      cpu: "200m"
-      memory: "256Mi"
-
-healthChecks:
-  backend:
-    path: /health
-    port: 8000
-  frontend:
-    path: /
-    port: 80
-```
-
-### 3.3 Deploy Helm Chart
-```bash
-# Deploy to Minikube
+# Deploy to Minikube cluster
 helm install todo-app charts/todo-app
 
 # Check deployment status
 helm status todo-app
+
+# Get Minikube IP
+minikube ip
 ```
 
-**Expected Output:**
-```
-NAME: todo-app
-LAST DEPLOYED: 2026-02-07 10:00:00.000000000 +0000 UTC
-NAMESPACE: default
-STATUS: deployed
-REVISION: 1
-TEST SUITE: None
-```
-
-## Step 4: Verify Deployment
-
-### 4.1 Check Pod Status
+### 3.2 Verify Deployment
 ```bash
+# Check pod status
 kubectl get pods
-```
 
-**Expected Output:**
-```
+# Expected output:
 NAME                               READY   STATUS    RESTARTS   AGE
 todo-backend-7c6d8f9d8f-2g5h1       1/1     Running   0          2m
 todo-backend-7c6d8f9d8f-4k2j3       1/1     Running   0          2m
 todo-frontend-4d3c2b1a2c-1p9q8      1/1     Running   0          2m
-```
 
-### 4.2 Check Services
-```bash
+# Check services
 kubectl get services
-```
 
-**Expected Output:**
-```
+# Expected output:
 NAME             TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
 todo-backend     ClusterIP   10.109.87.123   <none>        8000/TCP   2m
 todo-frontend    ClusterIP   10.111.45.67    <none>        80/TCP     2m
 ```
 
-### 4.3 Access Frontend
+## Step 4: Access Application
+
+### 4.1 Access Frontend
 ```bash
 # Get Minikube IP
 minikube ip
 
 # Access frontend in browser
-http://$(minikube ip):$(kubectl get svc todo-frontend -o jsonpath='{.spec.ports[0].nodePort}')
+open http://$(minikube ip)
 ```
 
-## Step 5: Demonstrate AI DevOps Tools
-
-### 5.1 Install kubectl-ai
+### 4.2 Test Backend API
 ```bash
-# Install kubectl-ai
-curl -sL https://kubectl-ai.sh/install | sh
+# Test backend health endpoint
+curl http://$(minikube ip):8000/health
 
-# Verify installation
-kubectl ai --version
+# Test backend API endpoint
+curl http://$(minikube ip):8000/api/health
 ```
 
-### 5.2 Demonstrate kubectl-ai Commands
+## Step 5: AI-Assisted Operations
 
-#### Scale Deployment
+### 5.1 Use kubectl-ai for Deployment Operations
 ```bash
-# Scale backend to 3 replicas
-kubectl ai "scale deployment todo-backend to 3 replicas"
+# Scale deployment
+kubectl-ai "scale the todo-backend to 3 replicas"
 
-# Check scaling result
-kubectl get pods
+# Debug pod
+kubectl-ai "debug the todo-backend deployment and provide solutions"
+
+# Update deployment
+kubectl-ai "update the todo-backend to use latest image"
+
+# Check status
+kubectl-ai "status of todo-backend deployment including resource utilization and recent events"
 ```
 
-#### Debug Pod
+### 5.2 Use Kagent for Cluster Analysis
 ```bash
-# Debug a specific pod
-kubectl ai "debug pod todo-backend-7c6d8f9d8f-2g5h1"
-
-# Check pod logs
-kubectl ai "show logs for pod todo-backend-7c6d8f9d8f-2g5h1"
-```
-
-#### Update Deployment
-```bash
-# Update backend image
-kubectl ai "update deployment todo-backend to use latest image"
-
-# Check rollout status
-kubectl ai "check rollout status for deployment todo-backend"
-```
-
-### 5.3 Install and Use Kagent
-```bash
-# Install Kagent
-curl -L https://kagent.io/install | sh
-
 # Analyze cluster health
 kagent analyze cluster --health
 
@@ -289,59 +212,115 @@ kagent optimize resources --cluster
 kagent analyze deployment todo-backend --insights
 ```
 
-**Expected Kagent Output:**
-```
-Cluster Health Analysis:
-- CPU Utilization: 65%
-- Memory Utilization: 45%
-- Network I/O: Normal
+## Step 6: Advanced Operations
 
-Resource Optimization Recommendations:
-- Increase CPU limits for backend deployment
-- Optimize memory usage for frontend containers
-- Consider horizontal pod autoscaling
-```
-
-## Step 6: Test Application Functionality
-
-### 6.1 Test Backend API
+### 6.1 Ingress Configuration
 ```bash
-# Test backend health endpoint
-curl http://$(minikube ip):$(kubectl get svc todo-backend -o jsonpath='{.spec.ports[0].nodePort}')/health
+# Enable ingress in values.yaml
+ingress:
+  enabled: true
+  className: ""
+  annotations: {}
+  labels: {}
+  hosts:
+    - host: todo.local
+      paths:
+        - path: /
+          pathType: Prefix
+          backend:
+            service:
+              name: todo-frontend
+              port:
+                number: 80
+  tls: []
 
-# Test backend API endpoint
-curl http://$(minikube ip):$(kubectl get svc todo-backend -o jsonpath='{.spec.ports[0].nodePort}')/api/health
+# Redeploy with ingress
+helm upgrade todo-app charts/todo-app
 ```
 
-### 6.2 Test Frontend
+### 6.2 Network Policies
 ```bash
-# Open frontend in browser
-open http://$(minikube ip):$(kubectl get svc todo-frontend -o jsonpath='{.spec.ports[0].nodePort}')
-
-# Test authentication flow
-# Click "Sign In" and verify JWT authentication
+# Configure network policies in values.yaml
+networkPolicies:
+  enabled: true
+  backend:
+    from:
+      - podSelector:
+          matchLabels:
+            app.kubernetes.io/component: frontend
+    ports:
+      - protocol: TCP
+        port: 8000
+  frontend:
+    from:
+      - ipBlock:
+          cidr: 0.0.0.0/0
+    ports:
+      - protocol: TCP
+        port: 80
 ```
 
-## Step 7: Clean Up
-
-### 7.1 Uninstall Helm Release
+### 6.3 Resource Management
 ```bash
-helm uninstall todo-app
+# Configure resource limits and requests in values.yaml
+backend:
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+
+frontend:
+  resources:
+    limits:
+      cpu: "200m"
+      memory: "256Mi"
+    requests:
+      cpu: "50m"
+      memory: "128Mi"
 ```
 
-### 7.2 Stop Minikube
+## Step 7: Monitoring and Observability
+
+### 7.1 Enable Monitoring
 ```bash
-minikube stop
+# Enable metrics-server
+minikube addons enable metrics-server
+
+# Check resource usage
+kubectl top pods
+kubectl top nodes
 ```
 
-### 7.3 Remove Minikube
+### 7.2 Set Up Alerts
 ```bash
-minikube delete
+# Configure alerts in values.yaml
+alerts:
+  destinations:
+    - name: slack
+      type: slack
+      channel: #k8s-alerts
+      webhook: ${SLACK_WEBHOOK_URL}
+    - name: email
+      type: email
+      recipients:
+        - admin@example.com
+      smtp_server: smtp.example.com
+      port: 587
+
+  rules:
+    - name: high-cpu
+      condition: cpu > 80%
+      severity: warning
+      message: "High CPU utilization detected: {value}%"
+      action: scale-up
 ```
 
-## Troubleshooting
+## Step 8: Troubleshooting
 
-### Common Issues and Solutions
+### 8.1 Common Issues and Solutions
 
 #### Minikube Won't Start
 ```bash
@@ -391,7 +370,7 @@ kubectl ai config list
 ping api.openai.com
 ```
 
-### Useful Commands
+### 8.2 Useful Commands
 
 #### Monitoring
 ```bash
@@ -403,6 +382,9 @@ kubectl logs -f deployment/todo-backend
 
 # Check resource usage
 kubectl top pods
+
+# Check events
+kubectl get events --sort-by='.lastTimestamp'
 ```
 
 #### Debugging
@@ -428,6 +410,54 @@ kubectl get endpoints todo-backend
 # Test service connectivity
 kubectl exec -it todo-frontend-4d3c2b1a2c-1p9q8 -- curl todo-backend:8000/health
 ```
+
+## Step 9: Cleanup
+
+### 9.1 Uninstall Helm Release
+```bash
+# Uninstall Helm release
+helm uninstall todo-app
+
+# Verify resources are deleted
+kubectl get pods -n default
+kubectl get services -n default
+kubectl get deployments -n default
+```
+
+### 9.2 Stop Minikube
+```bash
+# Stop Minikube
+minikube stop
+
+# Delete Minikube
+minikube delete
+```
+
+## Best Practices
+
+### Resource Management
+- **Start with 4 CPU, 8GB RAM, 30GB disk**
+- **Monitor resource usage regularly**
+- **Scale resources based on application needs**
+- **Clean up unused resources periodically**
+
+### Security
+- **Use non-root containers**
+- **Enable RBAC and network policies**
+- **Regularly update Kubernetes and addons**
+- **Monitor security events**
+
+### Performance
+- **Enable metrics-server for monitoring**
+- **Use appropriate resource limits**
+- **Configure horizontal pod autoscaling**
+- **Optimize container images**
+
+### Maintenance
+- **Regular backups of configuration**
+- **Update Minikube and Kubernetes regularly**
+- **Monitor cluster health and performance**
+- **Clean up unused resources and images**
 
 ## Verification Checklist
 
